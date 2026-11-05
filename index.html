@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verbo Quiz — Desperte a Palavra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-pale: #F5E6B8;
+    --crimson: #8B1A1A;
+    --crimson-deep: #5C0F0F;
+    --parchment: #F2E8D0;
+    --parchment-dark: #D4C49A;
+    --ink: #1A1208;
+    --shadow: rgba(10,5,0,0.7);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: #0D0A04;
+    color: var(--parchment);
+    font-family: 'Lato', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ===== NOISE TEXTURE OVERLAY ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px 60px;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, rgba(139,26,26,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 20% 80%, rgba(201,168,76,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 60%),
+      linear-gradient(180deg, #0D0A04 0%, #1A1208 50%, #0D0A04 100%);
+    z-index: 0;
+  }
+
+  /* rays of light */
+  .hero-rays {
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 900px;
+    background: conic-gradient(
+      from 270deg,
+      transparent 0deg,
+      rgba(201,168,76,0.06) 5deg,
+      transparent 10deg,
+      transparent 20deg,
+      rgba(201,168,76,0.04) 25deg,
+      transparent 30deg,
+      transparent 40deg,
+      rgba(201,168,76,0.07) 45deg,
+      transparent 50deg,
+      transparent 60deg,
+      rgba(201,168,76,0.05) 65deg,
+      transparent 70deg,
+      transparent 90deg
+    );
+    animation: raysRotate 30s linear infinite;
+    z-index: 0;
+  }
+
+  @keyframes raysRotate {
+    to { transform: translateX(-50%) rotate(360deg); }
+  }
+
+  .hero-ornament-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+  }
+
+  .hero-ornament-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent);
+  }
+
+  .badge {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,168,76,0.06);
+    margin-bottom: 32px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .badge::before {
+    content: '✦';
+    font-size: 8px;
+  }
+  .badge::after {
+    content: '✦';
+    font-size: 8px;
+  }
+
+  .hero-title {
+    position: relative;
+    z-index: 2;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(52px, 10vw, 110px);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    animation: fadeDown 0.8s 0.15s ease both;
+  }
+
+  .hero-title span.word-verbo {
+    display: block;
+    background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold) 40%, var(--gold-light) 60%, var(--parchment-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 40px rgba(201,168,76,0.5));
+  }
+
+  .hero-title span.word-quiz {
+    display: block;
+    color: var(--crimson);
+    font-size: 0.55em;
+    letter-spacing: 8px;
+    -webkit-text-stroke: 1px rgba(139,26,26,0.6);
+    animation-delay: 0.25s;
+  }
+
+  .divider {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px auto;
+    width: min(400px, 80vw);
+    animation: fadeDown 0.8s 0.3s ease both;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold));
+  }
+  .divider-line:last-child {
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+
+  .divider-cross {
+    color: var(--gold);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .hero-subtitle {
+    position: relative;
+    z-index: 2;
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--parchment-dark);
+    max-width: 500px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    animation: fadeDown 0.8s 0.4s ease both;
+  }
+
+  .cta-group {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeDown 0.8s 0.55s ease both;
+  }
+
+  .btn-primary {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 16px 40px;
+    background: linear-gradient(135deg, var(--crimson-deep), var(--crimson));
+    color: var(--gold-pale);
+    border: 1px solid var(--crimson);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(135deg, var(--gold), transparent, var(--gold));
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(139,26,26,0.5), 0 0 60px rgba(201,168,76,0.15);
+    color: var(--gold-light);
+  }
+
+  .btn-secondary {
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 16px 32px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.35);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  /* floating scroll indicator */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: rgba(201,168,76,0.5);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    animation: fadeDown 1s 1s ease both;
+  }
+
+  .scroll-arrow {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(180deg, rgba(201,168,76,0.5), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.3); }
+  }
+
+  /* ===== VERSE BANNER ===== */
+  .verse-banner {
+    background: linear-gradient(135deg, var(--crimson-deep), #3D0808);
+    border-top: 1px solid rgba(201,168,76,0.3);
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .verse-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.12), transparent 70%);
+  }
+
+  .verse-text {
+    font-family: 'IM Fell English', serif;
+    font-size: clamp(14px, 2vw, 18px);
+    font-style: italic;
+    color: var(--gold-pale);
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .verse-ref {
+    display: block;
+    margin-top: 8px;
+    font-style: normal;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* ===== FEATURES ===== */
+  .section {
+    padding: 100px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(28px, 5vw, 44px);
+    text-align: center;
+    background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .section-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    text-align: center;
+    color: var(--parchment-dark);
+    font-size: 17px;
+    margin-bottom: 64px;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .feature-card {
+    background: linear-gradient(135deg, #12100A, #1C1710);
+    padding: 44px 36px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s ease;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .feature-card:hover { background: linear-gradient(135deg, #1A1610, #251E12); }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    font-size: 36px;
+    margin-bottom: 20px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(201,168,76,0.4));
+  }
+
+  .feature-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 16px;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(242,232,208,0.65);
+  }
+
+  /* ===== HOW IT WORKS ===== */
+  .how-section {
+    padding: 100px 24px;
+    background: linear-gradient(180deg, #0D0A04, #150E07, #0D0A04);
+  }
+
+  .steps {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 48px;
+    text-align: center;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+  }
+
+  .step-number {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(201,168,76,0.3);
+    line-height: 1;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .step-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    background: radial-gradient(circle, rgba(139,26,26,0.2), transparent);
+    font-size: 28px;
+  }
+
+  .step-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .step-desc {
+    font-size: 13px;
+    color: rgba(242,232,208,0.6);
+    line-height: 1.7;
+  }
+
+  /* ===== STATS ===== */
+  .stats-section {
+    padding: 80px 24px;
+    border-top: 1px solid rgba(201,168,76,0.1);
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .stats-grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2px;
+    background: rgba(201,168,76,0.08);
+  }
+
+  .stat-item {
+    background: #0D0A04;
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.55);
+  }
+
+  /* ===== TESTIMONIALS ===== */
+  .testimonials-section {
+    padding: 100px 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .testimonial {
+    background: linear-gradient(135deg, #14110C, #1E1812);
+    border: 1px solid rgba(201,168,76,0.12);
+    padding: 36px 32px;
+    position: relative;
+  }
+
+  .testimonial::before {
+    content: '\201C';
+    position: absolute;
+    top: 16px;
+    left: 24px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 64px;
+    color: rgba(201,168,76,0.15);
+    line-height: 1;
+  }
+
+  .testimonial-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--parchment-dark);
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .testimonial-author {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ===== CTA FINAL ===== */
+  .cta-section {
+    padding: 120px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 80% at 50% 50%, rgba(139,26,26,0.25), transparent 70%),
+      radial-gradient(ellipse 50% 50% at 50% 100%, rgba(201,168,76,0.08), transparent);
+  }
+
+  .cta-cross {
+    font-size: 48px;
+    margin-bottom: 32px;
+    display: block;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
+    animation: crossGlow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes crossGlow {
+    from { filter: drop-shadow(0 0 20px rgba(201,168,76,0.4)); }
+    to   { filter: drop-shadow(0 0 40px rgba(201,168,76,0.8)); }
+  }
+
+  .cta-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(28px, 6vw, 52px);
+    background: linear-gradient(135deg, var(--gold-pale), var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--parchment-dark);
+    margin-bottom: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    border-top: 1px solid rgba(201,168,76,0.15);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .footer-verse {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(201,168,76,0.4);
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(13,10,4,0.95), transparent);
+    backdrop-filter: blur(4px);
+  }
+
+  .nav-logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 16px;
+    background: linear-gradient(135deg, var(--gold-pale), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+  }
+
+  .nav-link {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.7);
+    text-decoration: none;
+    transition: color 0.3s;
+    display: none;
+  }
+
+  .nav-link:hover { color: var(--gold); }
+
+  @media (min-width: 600px) {
+    .nav-link { display: inline; }
+  }
+
+  .nav-cta {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 8px 20px;
+    background: var(--crimson-deep);
+    color: var(--gold-pale);
+    border: 1px solid rgba(201,168,76,0.3);
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .nav-cta:hover {
+    background: var(--crimson);
+    box-shadow: 0 0 20px rgba(139,26,26,0.5);
+  }
+
+  @media (max-width: 480px) {
+    .steps::before { display: none; }
+    .feature-card { padding: 32px 24px; }
+  }
+
+  /* ===== GAME ===== */
+  .game{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(5,3,0,.92);backdrop-filter:blur(6px);overflow-y:auto}
+  .game.open{display:flex}
+  .g-box{width:min(640px,100%);margin:auto;background:linear-gradient(135deg,#14110C,#1E1812);border:1px solid rgba(201,168,76,.35);padding:32px 28px;position:relative;box-shadow:0 20px 80px rgba(0,0,0,.8)}
+  .g-close{position:absolute;top:10px;right:14px;background:none;border:0;color:var(--gold);font-size:26px;cursor:pointer}
+  .g-title{font-family:'Cinzel Decorative',serif;color:var(--gold-light);font-size:22px;text-align:center;margin-bottom:8px}
+  .g-sub{font-family:'IM Fell English',serif;font-style:italic;text-align:center;color:var(--parchment-dark);margin-bottom:24px}
+  .g-themes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  .g-btn{font-family:'Lato',sans-serif;font-size:15px;text-align:left;color:var(--parchment);background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);padding:14px 16px;cursor:pointer;transition:all .25s}
+  .g-btn:hover:not(:disabled){background:rgba(201,168,76,.15);border-color:var(--gold)}
+  .g-btn:disabled{cursor:default}
+  .g-btn.ok{background:rgba(46,125,50,.3);border-color:#4caf50}
+  .g-btn.bad{background:rgba(139,26,26,.45);border-color:#d33}
+  .g-top{display:flex;justify-content:space-between;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  .g-bar{height:4px;background:rgba(201,168,76,.15);margin-bottom:22px}
+  .g-bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--crimson),var(--gold));transition:width .1s linear}
+  .g-q{font-family:'IM Fell English',serif;font-size:clamp(19px,3vw,24px);line-height:1.4;margin-bottom:20px}
+  .g-opts{display:grid;gap:10px}
+  .g-info{margin-top:18px;padding:14px 16px;border-left:3px solid var(--gold);background:rgba(201,168,76,.07);font-size:14px;line-height:1.6;color:var(--parchment-dark)}
+  .g-info b{color:var(--gold-light)}
+  .g-next{margin:18px auto 0;display:block;border:0}
+  .g-score{font-family:'Cinzel Decorative',serif;font-size:56px;text-align:center;color:var(--gold-light)}
+  .g-trophy{font-size:56px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">✦ Sinais de Jesus sobre o futuro</a>
+  <a href="#" class="nav-cta">Jogar Grátis</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-rays"></div>
+  <div class="hero-ornament-top"></div>
+  <div class="hero-ornament-bottom"></div>
+
+  <div class="badge">O Conhecimento que Liberta</div>
+
+  <h1 class="hero-title">
+    <span class="word-verbo">Verbo</span>
+    <span class="word-quiz">Quiz</span>
+  </h1>
+
+  <div class="divider">
+    <span class="divider-line"></span>
+    <span class="divider-cross">✞</span>
+    <span class="divider-line"></span>
+  </div>
+
+  <p class="hero-subtitle">
+    Responda perguntas sobre a Bíblia, conquiste recompensas<br>
+    e descubra passagens que vão transformar sua vida.
+  </p>
+
+  <div class="cta-group">
+    <a href="#" class="btn-primary">▶ Começar Jornada</a>
+    <a href="#como-funciona" class="btn-secondary">Como Funciona</a>
+  </div>
+
+ 
+</section>
+
+<!-- VERSE BANNER -->
+<div class="verse-banner">
+  <p class="verse-text">
+    "A tua palavra é lâmpada para os meus pés e luz para o meu caminho."
+    <span class="verse-ref">Salmos 119:105</span>
+  </p>
+</div>
+
+<!-- FEATURES -->
+<div class="section reveal">
+  <p class="section-label">✦ Por que jogar</p>
+  <h2 class="section-title">Aprenda enquanto joga</h2>
+  <p class="section-sub">Cada pergunta é uma porta para a Palavra. Cada resposta, um passo mais perto de Deus.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📖</span>
+      <h3 class="feature-title">Referências Bíblicas</h3>
+      <p class="feature-desc">Ao final de cada pergunta, veja o versículo completo e o contexto da passagem para aprofundar seu estudo.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏆</span>
+      <h3 class="feature-title">Conquistas & Troféus</h3>
+      <p class="feature-desc">Desbloqueie medalhas especiais ao dominar Antigo e Novo Testamento, livros e histórias bíblicas.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚡</span>
+      <h3 class="feature-title">Desafios Diários</h3>
+      <p class="feature-desc">Um novo desafio por dia para manter sua mente afiada e sua fé em crescimento constante.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎯</span>
+      <h3 class="feature-title">Níveis de Dificuldade</h3>
+      <p class="feature-desc">Do iniciante ao estudioso avançado — o quiz cresce com você, do Gênesis ao Apocalipse.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">👥</span>
+      <h3 class="feature-title">Duelo entre Amigos</h3>
+      <p class="feature-desc">Desafie familiares e amigos de sua comunidade. A Palavra compartilhada une corações.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🗺️</span>
+      <h3 class="feature-title">Mapa da Bíblia</h3>
+      <p class="feature-desc">Visualize seu progresso por livro. Veja quais partes da Bíblia você já desbloqueou e o que ainda explorar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-section" id="como-funciona">
+  <div style="max-width:1100px;margin:0 auto;">
+    <p class="section-label reveal" style="text-align:center">✦ Sua Jornada</p>
+    <h2 class="section-title reveal">Como Funciona</h2>
+    <p class="section-sub reveal">Simples como orar. Poderoso como a Palavra.</p>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-circle">🎮</div>
+        <div class="step-title">Escolha o Tema</div>
+        <p class="step-desc">Selecione entre personagens bíblicos, milagres, profetas, evangelhos e muito mais.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">❓</div>
+        <div class="step-title">Responda</div>
+        <p class="step-desc">Questões desafiadoras que testam seu conhecimento e aguçam sua curiosidade pela Bíblia.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">📚</div>
+        <div class="step-title">Aprenda</div>
+        <p class="step-desc">Veja o contexto completo da resposta e a passagem bíblica que a fundamenta.</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">✨</div>
+        <div class="step-title">Cresça</div>
+        <p class="step-desc">Acumule pontos, suba no ranking e veja sua caminhada espiritual florescer.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section reveal">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-number">1.200+</div>
+      <div class="stat-label">Perguntas</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">66</div>
+      <div class="stat-label">Livros da Bíblia</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">50k+</div>
+      <div class="stat-label">Jogadores</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">4.9★</div>
+      <div class="stat-label">Avaliação</div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div class="testimonials-section reveal">
+  <p class="section-label">✦ Depoimentos</p>
+  <h2 class="section-title">O que dizem os jogadores</h2>
+  <br><br>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <p class="testimonial-text">O Verbo Quiz me fez abrir a Bíblia todos os dias. Cada pergunta errada virou motivação para ler mais e entender melhor a Palavra.</p>
+      <span class="testimonial-author">— Ana Luiza, São Paulo</span>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Nunca imaginei que um jogo pudesse me aproximar tanto das Escrituras. Minha família inteira joga junto e debatemos os versículos depois.</p>
+      <span class="testimonial-author">— Pastor Marcos, Belo Horizonte</span>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Uso na escola dominical com os jovens. Eles adoram a competição e acabam querendo saber mais sobre as histórias bíblicas.</p>
+      <span class="testimonial-author">— Professora Rita, Recife</span>
+    </div>
+  </div>
+</div>
+
+<!-- CTA FINAL -->
+<section class="cta-section reveal">
+  <span class="cta-cross">✞</span>
+  <h2 class="cta-title">Comece sua jornada hoje</h2>
+  <p class="cta-sub">A Palavra de Deus espera por você. Quantas páginas você vai descobrir hoje?</p>
+  <div class="cta-group">
+    <a href="#" class="btn-primary">▶ Jogar Agora — Grátis</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">✦ Verbo Quiz</div>
+  <p class="footer-verse">"Sede transformados pela renovação da vossa mente." — Romanos 12:2</p>
+</footer>
+
+
+<div class="game" id="game" role="dialog" aria-modal="true"><div class="g-box"><button class="g-close" id="gClose" aria-label="Fechar">×</button><div id="gBody"></div></div></div>
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  reveals.forEach(el => observer.observe(el));
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      if (a.getAttribute('href') === '#') return;
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  // ===== VERBO QUIZ — JOGO =====
+  // [tema, nível(1-3), pergunta, certa, [erradas], referência, contexto]
+  const Q = [
+    ['at',1,'Quem construiu a arca para sobreviver ao dilúvio?','Noé',['Moisés','Abraão','Davi'],'Gênesis 6–9','Deus instruiu Noé a construir a arca para preservar sua família e os animais.'],
+    ['at',1,'Quantas pragas Deus enviou sobre o Egito?','Dez',['Sete','Doze','Cinco'],'Êxodo 7–12','As pragas culminaram na morte dos primogênitos e na libertação de Israel.'],
+    ['at',1,'Quem derrotou o gigante Golias?','Davi',['Saul','Jônatas','Sansão'],'1 Samuel 17','Davi enfrentou Golias com uma funda e cinco pedras, confiando no Senhor.'],
+    ['at',1,'Quem foi engolido por um grande peixe?','Jonas',['Elias','Isaías','Daniel'],'Jonas 1:17','Jonas fugiu da missão em Nínive e passou três dias no ventre do peixe.'],
+    ['at',1,'Qual é o primeiro livro da Bíblia?','Gênesis',['Êxodo','Salmos','Mateus'],'Gênesis 1:1','Gênesis narra a criação, a queda e os patriarcas.'],
+    ['at',2,'Quem foi lançado na cova dos leões por orar a Deus?','Daniel',['José','Jeremias','Ezequiel'],'Daniel 6','Deus enviou seu anjo e fechou a boca dos leões.'],
+    ['at',2,'Quem interpretou os sonhos do Faraó no Egito?','José',['Moisés','Benjamim','Judá'],'Gênesis 41','José foi elevado a governador do Egito por interpretar os sonhos.'],
+    ['at',2,'Em qual monte Moisés recebeu os Dez Mandamentos?','Sinai',['Carmelo','Sião','Nebo'],'Êxodo 19–20','No Sinai, Deus firmou aliança com Israel e entregou a Lei.'],
+    ['nt',1,'Quantos apóstolos Jesus escolheu?','Doze',['Sete','Setenta','Dez'],'Mateus 10:1-4','Os Doze foram chamados para estar com Jesus e anunciar o Reino.'],
+    ['nt',1,'Em que cidade Jesus nasceu?','Belém',['Nazaré','Jerusalém','Cafarnaum'],'Mateus 2:1','Belém cumpriu a profecia de Miqueias sobre o nascimento do Messias.'],
+    ['nt',1,'Qual é o último livro da Bíblia?','Apocalipse',['Judas','Atos','Hebreus'],'Apocalipse 1:1','Escrito por João, revela a vitória final de Cristo.'],
+    ['nt',2,'Qual apóstolo negou Jesus três vezes?','Pedro',['Tomé','João','André'],'Mateus 26:69-75','Pedro chorou amargamente e depois foi restaurado por Jesus.'],
+    ['nt',2,'Quem era Saulo antes de se tornar o apóstolo Paulo?','Perseguidor dos cristãos',['Cobrador de impostos','Pescador','Soldado romano'],'Atos 9:1-19','Na estrada de Damasco, Saulo encontrou o Cristo ressuscitado.'],
+    ['nt',3,'Qual foi o primeiro milagre de Jesus registrado em João?','Água em vinho',['Cura de um cego','Multiplicação dos pães','Cura de um leproso'],'João 2:1-11','Em Caná da Galileia, Jesus manifestou sua glória.'],
+    ['mi',1,'Quantos pães e peixes alimentaram cerca de cinco mil pessoas?','5 pães e 2 peixes',['7 pães e 3 peixes','12 pães e 5 peixes','3 pães e 1 peixe'],'Mateus 14:13-21','Sobraram doze cestos de pedaços.'],
+    ['mi',1,'Sobre o que Jesus andou?','O mar',['Um rio','Um deserto','Uma montanha'],'Mateus 14:22-33','Pedro também andou sobre as águas, até duvidar.'],
+    ['mi',2,'Quem Jesus ressuscitou após quatro dias no túmulo?','Lázaro',['O filho da viúva','Jairo','Dorcas'],'João 11:38-44','Jesus disse: "Eu sou a ressurreição e a vida".'],
+    ['mi',2,'Quantos dias Israel marchou ao redor de Jericó antes de os muros caírem?','Sete',['Três','Quarenta','Doze'],'Josué 6','No sétimo dia deram sete voltas, e os muros caíram.'],
+    ['mi',2,'Quem fez descer fogo do céu no monte Carmelo?','Elias',['Eliseu','Moisés','Gideão'],'1 Reis 18:30-39','Elias desafiou os profetas de Baal diante de todo o povo.'],
+    ['mi',3,'Quem pediu que o sol parasse sobre Gibeão?','Josué',['Calebe','Samuel','Davi'],'Josué 10:12-14','Deus ouviu a voz de Josué e deu vitória a Israel.'],
+    ['pe',1,'Quem era conhecido pela grande sabedoria?','Salomão',['Absalão','Roboão','Jeú'],'1 Reis 3–4','Salomão pediu a Deus um coração sábio para governar.'],
+    ['pe',1,'Qual personagem tinha força ligada ao cabelo?','Sansão',['Gideão','Golias','Jefté'],'Juízes 16','Sansão era nazireu desde o ventre de sua mãe.'],
+    ['pe',2,'Quem vendeu a primogenitura por um prato de lentilhas?','Esaú',['Jacó','Ismael','Rúben'],'Gênesis 25:29-34','Esaú desprezou sua primogenitura por um prato de comida.'],
+    ['pe',2,'Qual rainha arriscou a vida para salvar seu povo?','Ester',['Rute','Débora','Sara'],'Ester 4–7','Ester intercedeu junto ao rei Assuero pelos judeus.'],
+    ['pe',2,'Quem subiu num sicômoro para ver Jesus?','Zaqueu',['Nicodemos','Bartimeu','Mateus'],'Lucas 19:1-10','Jesus foi à casa de Zaqueu, e ele se arrependeu.'],
+    ['pe',3,'Quem foi a esposa de Boaz, bisavó do rei Davi?','Rute',['Noemi','Raabe','Tamar'],'Rute 4:13-17','Rute, moabita, é uma das mulheres na genealogia de Jesus.']
+  ];
+  const THEMES = [['todos','📜 Todos os Temas'],['at','🕊️ Antigo Testamento'],['nt','✝️ Novo Testamento'],['mi','✨ Milagres'],['pe','👤 Personagens']];
+  const gEl = document.getElementById('game'), gBody = document.getElementById('gBody');
+  const TIME = 20, ROUND = 10;
+  let G = {}, tmr = null;
+
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const best = () => { try { return +localStorage.getItem('verbo-best') || 0; } catch (e) { return 0; } };
+  const saveBest = v => { try { localStorage.setItem('verbo-best', v); } catch (e) {} };
+
+  function openGame() { gEl.classList.add('open'); document.body.style.overflow = 'hidden'; menu(); }
+  function closeGame() { clearInterval(tmr); gEl.classList.remove('open'); document.body.style.overflow = ''; }
+
+  function menu() {
+    clearInterval(tmr);
+    gBody.innerHTML = `<h2 class="g-title">Escolha o Tema</h2>
+      <p class="g-sub">Melhor pontuação: ${best()} pts</p>
+      <div class="g-themes">${THEMES.map(t => `<button class="g-btn" data-t="${t[0]}">${t[1]}</button>`).join('')}</div>`;
+    gBody.querySelectorAll('[data-t]').forEach(b => b.onclick = () => start(b.dataset.t));
+  }
+
+  function start(t) {
+    const pool = Q.filter(q => t === 'todos' || q[0] === t);
+    G = { theme: t, qs: shuffle(pool).slice(0, ROUND), i: 0, score: 0, hits: 0, streak: 0 };
+    question();
+  }
+
+  function question() {
+    const q = G.qs[G.i];
+    G.opts = shuffle([q[3], ...q[4]]); G.left = TIME; G.done = false;
+    gBody.innerHTML = `<div class="g-top"><span>Pergunta ${G.i + 1}/${G.qs.length}</span><span>⏱ <b id="gT">${TIME}</b>s</span><span>${G.score} pts</span></div>
+      <div class="g-bar"><i id="gBar"></i></div>
+      <div class="g-q">${q[2]}</div>
+      <div class="g-opts">${G.opts.map((o, k) => `<button class="g-btn" data-k="${k}">${o}</button>`).join('')}</div>
+      <div id="gInfo"></div>`;
+    gBody.querySelectorAll('[data-k]').forEach(b => b.onclick = () => answer(G.opts[b.dataset.k]));
+    clearInterval(tmr);
+    tmr = setInterval(() => {
+      G.left -= 0.1;
+      if (G.left <= 0) { answer(null); return; }
+      document.getElementById('gT').textContent = Math.ceil(G.left);
+      document.getElementById('gBar').style.width = (G.left / TIME * 100) + '%';
+    }, 100);
+  }
+
+  function answer(choice) {
+    if (G.done) return; G.done = true; clearInterval(tmr);
+    const q = G.qs[G.i], right = choice === q[3];
+    if (right) {
+      G.hits++; G.streak++;
+      G.score += q[1] * 100 + Math.round(G.left * 5) + (G.streak > 1 ? (G.streak - 1) * 10 : 0);
+    } else G.streak = 0;
+    gBody.querySelectorAll('[data-k]').forEach(b => {
+      b.disabled = true;
+      const t = G.opts[b.dataset.k];
+      if (t === q[3]) b.classList.add('ok'); else if (t === choice) b.classList.add('bad');
+    });
+    const last = G.i === G.qs.length - 1;
+    document.getElementById('gInfo').innerHTML = `<div class="g-info"><b>${right ? '✔ Correto!' : (choice === null ? '⏳ Tempo esgotado!' : '✘ Não foi dessa vez.')}</b><br>📖 <b>${q[5]}</b> — ${q[6]}</div>
+      <button class="btn-primary g-next" id="gNext">${last ? 'Ver Resultado' : 'Próxima ▶'}</button>`;
+    document.getElementById('gNext').onclick = () => { if (last) result(); else { G.i++; question(); } };
+  }
+
+  function result() {
+    const pct = G.hits / G.qs.length, isBest = G.score > best();
+    if (isBest) saveBest(G.score);
+    const [ico, rank] = pct >= .9 ? ['🏆', 'Estudioso das Escrituras'] : pct >= .6 ? ['🥈', 'Discípulo Dedicado'] : pct >= .3 ? ['📖', 'Aprendiz da Palavra'] : ['🌱', 'Semente Plantada'];
+    gBody.innerHTML = `<div class="g-trophy">${ico}</div>
+      <h2 class="g-title">${rank}</h2>
+      <div class="g-score">${G.score}</div>
+      <p class="g-sub">${G.hits} de ${G.qs.length} acertos${isBest ? ' — 🎉 novo recorde!' : ''}</p>
+      <div class="cta-group"><button class="btn-primary" id="gAgain">↻ Jogar de Novo</button><button class="btn-secondary" id="gMenu">Trocar Tema</button></div>`;
+    document.getElementById('gAgain').onclick = () => start(G.theme || 'todos');
+    document.getElementById('gMenu').onclick = menu;
+  }
+
+  document.querySelectorAll('.nav-cta, .cta-group .btn-primary').forEach(b => b.addEventListener('click', e => { e.preventDefault(); openGame(); }));
+  document.getElementById('gClose').onclick = closeGame;
+  gEl.addEventListener('click', e => { if (e.target === gEl) closeGame(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGame(); });
+</script>
+</body>
+</html>
